@@ -195,7 +195,7 @@ bool song_close(song s)
         }
         for (; current_sample != note_end; phase += phase_step)
         {
-            double t = (double) (current_sample - decay_start) / BEAT_LEN;
+            double t = (double)(current_sample - decay_start) / BEAT_LEN;
             *current_sample++ = round(VOLUME * pow(M_E, t * DECAY_FACTOR) * sin(phase));
         }
 

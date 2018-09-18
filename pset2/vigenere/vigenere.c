@@ -46,17 +46,17 @@ int main(int argc, string argv[])
     {
         if (plain[i] >= 'a' && plain[i] <= 'z')
         {
-            printf("%c",(((plain[i] - 'a') + ikey[ind % k]) % 26) + 'a');
+            printf("%c", (((plain[i] - 'a') + ikey[ind % k]) % 26) + 'a');
             ind++;
         }
         else if (plain[i] >= 'A' && plain[i] <= 'Z')
         {
-            printf("%c",(((plain[i] - 'A') + ikey[ind % k]) % 26) + 'A');
+            printf("%c", (((plain[i] - 'A') + ikey[ind % k]) % 26) + 'A');
             ind++;
         }
         else
         {
-            printf("%c",plain[i]);
+            printf("%c", plain[i]);
         }
     }
     printf("\n");

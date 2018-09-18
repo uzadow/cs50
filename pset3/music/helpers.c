@@ -41,16 +41,16 @@ int frequency(string note)
 
     // Add semitones according to note
     n += ((note[0] - 'A') * 2);
-    switch(note[0])
+    switch (note[0])
     {
         case 'C' :
         case 'D' :
         case 'E' :
-            n-=13;
+            n -= 13;
             break;
         case 'F' :
         case 'G' :
-            n-=14;
+            n -= 14;
             break;
     }
 

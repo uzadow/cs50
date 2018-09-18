@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     }
 
     char *infile = argv[1];
-    FILE *input = fopen(infile,"r");
+    FILE *input = fopen(infile, "r");
     if (input == NULL)
     {
         fprintf(stderr, "Could not open input file");
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
     FILE *tmp;
 
-    while (fread(buffer, BLOCK, 1, input ) != 0)
+    while (fread(buffer, BLOCK, 1, input) != 0)
     {
         if (buffer[0] == 0xff && buffer[1] == 0xd8 && buffer[2] == 0xff && buffer[3] >= 0xe0 && buffer[3] <= 0xef)
         {
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
                 fclose(tmp);
             }
 
-            tmp = fopen(name(fnum),"w");
+            tmp = fopen(name(fnum), "w");
             if (tmp == NULL)
             {
                 fprintf(stderr, "Could not edit output file");
@@ -62,6 +62,6 @@ int main(int argc, char *argv[])
 char *name(num)
 {
     static char tmp[12];
-    sprintf(tmp,"%i%i%i.jpg", (int)floor(num / 100), (int)floor(num % 100 / 10), (int)floor(num % 10 / 1));
+    sprintf(tmp, "%i%i%i.jpg", (int)floor(num / 100), (int)floor(num % 100 / 10), (int)floor(num % 10 / 1));
     return tmp;
 }
