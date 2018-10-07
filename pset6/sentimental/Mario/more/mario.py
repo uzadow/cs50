@@ -9,12 +9,11 @@ layer = ""
 for i in range(height):
     for j in range(height - 1 - i):
         layer += " "
-
-    for k in range(2):
-        for j in range(i + 1):
-            layer += "#"
-
-        layer += "  "
+    for j in range(i + 1):
+        layer += "#"
+    layer += "  "
+    for j in range(i + 1):
+        layer += "#"
 
     print(layer)
     layer = ""

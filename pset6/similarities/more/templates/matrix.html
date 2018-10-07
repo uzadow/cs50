@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <table>
+        <tr>
+            {% for letter2 in string2 %}
+                <th> {{ letter2 }} </th>
+            {% endfor %}
+        </tr>'
+        {% for letter1 in string1 %}
+            <tr>
+                <th> {{ letter1 }} </th>
+                {% for letter2 in string2 %}
+                    <td> {{ letter2 }} </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

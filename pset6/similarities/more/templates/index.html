@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <h4> Please enter two Strings you want to compare: </h4>
+    <form action="/score" method="post">
+        <input type="text" name="string1"/> <br>
+        <input type="text" name="string2"/> <br>
+        <input type="submit" value="Submit"/>
+    </form>
+{% endblock %}

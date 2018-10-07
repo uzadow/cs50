@@ -33,10 +33,5 @@ void calc(int i)
     coin_amount += floor(change / COIN_LIST[i]);
     change = change % COIN_LIST[i];
 
-
-
-    if (i > 0)
-    {
-        calc(i - 1);
-    }
+    if (i > 0) calc(i - 1);
 }
