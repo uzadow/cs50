@@ -1,5 +1,4 @@
 from enum import Enum
-from numpy import *
 
 
 class Operation(Enum):
@@ -10,24 +9,31 @@ class Operation(Enum):
     SUBSTITUTED = 3
 
     def __str__(self):
-        return str(self.enum.lower())
+        return str(self.name.lower())
 
 
 def distances(a, b):
     """Calculate edit distance from a to b"""
 
     # Variable initialisation
-    la = len(a) + 1
-    lb = len(b) + 1
-    matrix = [[0 for x in range(lb)] for y in range(la)]
+    la = len(a)
+    lb = len(b)
+    matrix = [0] * (la + 1)
+
+    # Filling of the 0 Row/Column
+    for i in range(la + 1):
+        matrix[i] = [0] * (lb + 1)
+        matrix[0][i] = (i, Operation.INSERTED)
+
+    for j in range(lb):
+        matrix[j + 1][0] = (j + 1, Operation.DELETED)
+
     matrix[0][0] = (0, None)
 
-    # Filling out Matrix;
-    for ia in range(1, la):
-        for ib in range(1, lb):
-            matrix[0][ib] = (ib, Operation.INSERTED)
-            matrix[ia][0] = (ia, Operation.DELETED)
-            matrix[ia][ib] = cost(matrix, a, b, ia, ib)
+    # Filling of the rest of the Matrix
+    for i in range(la):
+        for j in range(lb):
+            matrix[i + 1][j + 1] = cost(matrix, a, b, i + 1, j + 1)
 
     return matrix
 
@@ -40,7 +46,7 @@ def cost(matrix, a, b, i, j):
     #sort values
     values.sort(key = minCost)
 
-    #return values.sort(key = minCost)[0] aka lowest cost
+    #return values.sort(key = minCost)[0]
     return values[0]
 
 def minCost(e):

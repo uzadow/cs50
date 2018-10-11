@@ -1,19 +1,24 @@
 {% extends "layout.html" %}
 
 {% block body %}
-    <table>
+<!--
+    <table style="width: 100%">
         <tr>
-            {% for letter2 in string2 %}
-                <th> {{ letter2 }} </th>
+            <th> # </th>
+            {% for char in string2 %}
+                <th> char </th>
             {% endfor %}
-        </tr>'
-        {% for letter1 in string1 %}
+        </tr>
+
+        {% for char1 in string1 %}
             <tr>
-                <th> {{ letter1 }} </th>
-                {% for letter2 in string2 %}
-                    <td> {{ letter2 }} </td>
+                <th> {{ char1 }} </th>
+                {% for char2 in string2 %}
+                    <td> {{ char2 }} </td>
                 {% endfor %}
             </tr>
         {% endfor %}
+
     </table>
+-->
 {% endblock %}
