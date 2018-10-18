@@ -28,23 +28,29 @@ int main(int argc, char* argv[])
     string hash = argv[1];
     char key[KEYLENGTH] = "";
     strcat(key, "A");
-    strcpy(key, recCheck(key, hash));
+    strcpy(key, loopCheck(key, hash));
     if (strcmp(key, "-1") == 0) printf("No valid key was found! FIX YOUR BUGS OR INPUT A CORRECT HASH!!");
-    else printf("The key is: %s", recCheck(key, hash));
+    else printf("The key is: %s", key);
 }
 
+// Recursive aproach; too cost-intensive
 string recCheck(string key, string hash)
 {
-    if (check(getHash(key), key, hash)) return key;
-    else return recCheck(next(key), hash);
+    if (check(getSalt(key), key, hash)) return key;
+    else return recCheck(nextChar(key), hash);
 }
 
-string next(string key)
+// Loop aproach:
+string loopCheck(string key, string hash)
 {
-    key = nextChar(key, 0);
-    return key;
+    while (true)
+    {
+        if (check(getSalt(key), key, hash) || strcmp(key, "-1")) return key;
+        else strcpy(key, nextChar(key));
+    }
 }
 
+// Increments key by one element
 string nextChar(string s, int index)
 {
     if (s[index] == 'z')
@@ -53,9 +59,14 @@ string nextChar(string s, int index)
         else
         {
             s[index] = 'A';
-            s = nextChar(s, index + 1);
+            strcpy(s, nextChar(s, index + 1));
             return s;
         }
+    }
+    else if (s[index] == '\0')
+    {
+        s[index] = 'A';
+        s[index + 1] = '\0';
     }
     else if (s[index] == 'Z')
     {
@@ -69,12 +80,14 @@ string nextChar(string s, int index)
     }
 }
 
+// Check wether hash equals the hash generated from the cracked password
 bool check(string key, string salt, string hash)
 {
     return (strcmp(crypt(key, salt), hash) == 0);
 }
 
-string getHash(string key)
+// Get salt from key (first two chars)
+string getSalt(string key)
 {
     string tmp = "  ";
     for (int i = 0; i < 2; i++)
