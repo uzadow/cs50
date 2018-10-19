@@ -13,14 +13,14 @@ string dicts[] = {"dictionaries/passwords", "dictionaries/large"};
 
 string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-char salt[3] = "AA";
+char salt[3];
 char key[KEYLENGTH] = {'A', '\0'};
 string hash;
 
 void recCheck();
 void loopCheck();
 bool dictCheck(const char *dictionary);
-void getSalt();
+bool startDictAttack();
 bool check();
 void nextChar(int index);
 
@@ -35,6 +35,9 @@ int main(int argc, char* argv[])
 
     // Var initialization
     hash = argv[1];
+    salt[1] = hash[1];
+    salt[0] = hash[0];
+    salt[2] = '\0';
 
     // Executional start of dict and brute force attack:
     if (!(startDictAttack())) loopCheck();
@@ -48,6 +51,7 @@ int main(int argc, char* argv[])
 // Recursive aproach; too cost-intensive
 void recCheck()
 {
+    printf("Starting brute force attack...\n");
     if (check()) return;
     else
     {
@@ -59,10 +63,10 @@ void recCheck()
 // Loop aproach:
 void loopCheck()
 {
-    strcpy(salt, "AA");
+    printf("Starting brute force attack...\n");
     while (true)
     {
-        if ((strcmp(key, "-1") == 0 || check(key, hash))) return;
+        if ((strcmp(key, "-1") == 0 || check(key, salt))) return;
         nextChar(0);
     }
 }
@@ -70,33 +74,40 @@ void loopCheck()
 // Dict attack: (Integrated are some parts of pset5's speller problem; the file handling and use of "dictionaries/large" library are to be attributed to the Harvard University)
 bool dictCheck(const char *dictionary)
 {
-    strcpy(salt, "AA");
     char word[MAXCHARSOFWORD] = "\0";
     int index = 0;
     FILE *fileptr = fopen(dictionary, "r");
+
+    printf("'%s':", dictionary);
+
     for (int c = fgetc(fileptr); c != EOF; c = fgetc(fileptr))
     {
         if (c != '\n')
         {
             word[index] = c;
+            index++;
         }
         else
         {
+            memset(key, 0, sizeof(key));
             strcpy(key, word);
+            printf("crypt(%s, %s): %s == %s\n", key, salt, crypt(key, salt), hash);
             if (check()) return true;
-            strcpy(word, "\0");
+            memset(word, 0, sizeof(word));
             index = 0;
         }
     }
+    printf(".\nNothing found.\n");
     return false;
 }
 
 bool startDictAttack()
 {
-    /*for (int i = 0; i < NUMBEROFDICTS; i++)
+    for (int i = 0; i < NUMBEROFDICTS; i++)
     {
+        printf("Starting dict attack using ");
         if (dictCheck(dicts[i])) return true;
-    }*/
+    }
     return false;
 }
 
@@ -131,13 +142,5 @@ void nextChar(int index)
 // Check wether hash equals the hash generated from the cracked password
 bool check()
 {
-    getSalt();
     return (strcmp(crypt(key, salt), hash) == 0);
-}
-
-// Get salt from key (first two chars)
-void getSalt()
-{
-    if (key[1] != '\0') salt[1] = key[1];
-    if (key[0] != '\0') salt[0] = key[0];
 }

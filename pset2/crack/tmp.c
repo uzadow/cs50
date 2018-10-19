@@ -13,7 +13,6 @@ string dicts[] = {"dictionaries/passwords", "dictionaries/large"};
 
 string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-char salt[3] = "AA";
 char key[KEYLENGTH] = {'A', '\0'};
 string hash;
 
@@ -21,7 +20,6 @@ void recCheck();
 void loopCheck();
 bool dictCheck(const char *dictionary);
 bool startDictAttack();
-void getSalt();
 bool check();
 void nextChar(int index);
 
@@ -33,7 +31,7 @@ int main(int argc, char* argv[])
         printf("SYNTAX: 'crack [hash]'\n");
         return 1;
     }
-
+    char salt = *key;
     // Var initialization
     hash = argv[1];
 
@@ -62,7 +60,6 @@ void recCheck()
 void loopCheck()
 {
     printf("Starting brute force attack...\n");
-    strcpy(salt, "AA");
     while (true)
     {
         if ((strcmp(key, "-1") == 0 || check(key, hash))) return;
@@ -73,7 +70,6 @@ void loopCheck()
 // Dict attack: (Integrated are some parts of pset5's speller problem; the file handling and use of "dictionaries/large" library are to be attributed to the Harvard University)
 bool dictCheck(const char *dictionary)
 {
-    strcpy(salt, "AA");
     char word[MAXCHARSOFWORD] = "\0";
     int index = 0;
     FILE *fileptr = fopen(dictionary, "r");
@@ -91,8 +87,7 @@ bool dictCheck(const char *dictionary)
         {
             memset(key, 0, sizeof(key));
             strcpy(key, word);
-            getSalt();
-            printf("crypt(%s, %s) = %s\n", key, salt, crypt(key, salt));
+            printf("crypt(%s, %s) = %s\n", key, key, crypt(key, key));
             if (check()) return true;
             memset(word, 0, sizeof(word));
             index = 0;
@@ -143,13 +138,5 @@ void nextChar(int index)
 // Check wether hash equals the hash generated from the cracked password
 bool check()
 {
-    getSalt();
-    return (strcmp(crypt(key, salt), hash) == 0);
-}
-
-// Get salt from key (first two chars)
-void getSalt()
-{
-    if (key[1] != '\0' && key[1] != '\'') salt[1] = key[1];
-    if (key[0] != '\0') salt[0] = key[0];
+    return (strcmp(crypt(key, key), hash) == 0);
 }
