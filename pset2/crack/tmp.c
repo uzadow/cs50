@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <cs50.h>
 #include <stdio.h>
+#include <math.h>
 
 #define KEYLENGTH 20
 
@@ -53,8 +54,15 @@ void recCheck()
 // Loop aproach:
 void loopCheck()
 {
+    int x = 0;
+    int y = 0;
+    int z = 0;
     while (true)
     {
+        x++;
+        z = y;
+        y = floor(log(x));
+        if (y != z) printf("%s\n", key);
         if ((strcmp(key, "-1") == 0 || check(key, hash))) return;
         nextChar(0);
     }
