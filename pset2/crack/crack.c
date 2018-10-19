@@ -66,7 +66,14 @@ void loopCheck()
     printf("Starting brute force attack...\n");
     while (true)
     {
-        if ((strcmp(key, "-1") == 0 || check(key, salt))) return;
+        if (strcmp(key, "-1") == 0) return;
+        else if (check(key, salt))
+        {
+            FILE *fileptr = fopen(dicts[0], "a");
+            fputs(key, fileptr);
+            fclose(fileptr);
+            return;
+        }
         nextChar(0);
     }
 }
@@ -92,12 +99,17 @@ bool dictCheck(const char *dictionary)
             memset(key, 0, sizeof(key));
             strcpy(key, word);
             printf("%s: %s\n", key, crypt(key, salt));
-            if (check()) return true;
+            if (check())
+            {
+                fclose(fileptr);
+                return true;
+            }
             memset(word, 0, sizeof(word));
             index = 0;
         }
     }
-    printf(".\nNothing found.\n");
+    printf("\nNothing found.\n");
+    fclose(fileptr);
     return false;
 }
 

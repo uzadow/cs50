@@ -88,12 +88,16 @@ bool dictCheck(const char *dictionary)
             memset(key, 0, sizeof(key));
             strcpy(key, word);
             printf("crypt(%s, %s) = %s\n", key, key, crypt(key, key));
-            if (check()) return true;
+            if (check())
+            {
+                fclose(fileptr);
+                return true;
             memset(word, 0, sizeof(word));
             index = 0;
         }
     }
     printf(".\nNothing found.\n");
+    fclose(fileptr);
     return false;
 }
 
