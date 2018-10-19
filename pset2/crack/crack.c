@@ -91,7 +91,7 @@ bool dictCheck(const char *dictionary)
         {
             memset(key, 0, sizeof(key));
             strcpy(key, word);
-            printf("crypt(%s, %s): %s == %s\n", key, salt, crypt(key, salt), hash);
+            printf("%s: %s\n", key, crypt(key, salt));
             if (check()) return true;
             memset(word, 0, sizeof(word));
             index = 0;
