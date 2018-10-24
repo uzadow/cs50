@@ -12,8 +12,8 @@
 
 const string dicts[] = {"dictionaries/passwords", "dictionaries/large"};
 
-//const char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-const char alphabet[] = "0123456789";
+const char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+//const char alphabet[] = "0123456789";
 int alphaLen = (sizeof(alphabet) - sizeof(char));
 
 char salt[3];
@@ -92,14 +92,13 @@ void loopOnlyCheck()
         d++;
         for (int n = 0, m = ceil(logBase(d, alphaLen)); n < m; n++)
         {
-            printf("%i-%i,",n,m);
-            key[n] = alphabet[(long) (d / pow(alphaLen, n) % alphaLen)];  // SEGFAULT for d = 32768
+            key[n] = alphabet[((long) (d / pow(alphaLen, n)) % (int) alphaLen)];
         }
-        printf("\n");
         if (check()) return;
     }
 }
 
+// Math extension to evaluate logarithms with a different base
 double logBase(double val, int base)
 {
     return (log(val) / log(base));
