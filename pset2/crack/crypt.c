@@ -1,32 +1,35 @@
 #define _XOPEN_SOURCE
 #include <unistd.h>
 #include <string.h>
-#include <stdbool.h>
-#include <cs50.h>
+#include <math.h>
+#include <stdlib.h>
 #include <stdio.h>
 
-
-char salt[3];
-string key;
-string hash;
+char getRanChar();
 
 int main(int argc, char* argv[])
 {
 
-    if (argc != 3)
+    if (argc != 2)
     {
-        printf("SYNTAX: 'crypt [hash]'\n");
+        printf("SYNTAX: 'crypt [key]'\n");
         return 1;
     }
 
-    // Var initialization
-    key = argv[1];
-    hash = argv[2];
-    salt[0] = hash[0];
-    salt[1] = hash[1];
-    salt[2] = '\0';
+    char * key = argv[1];
+    char salt[3] = "AA";
 
-    printf("crypt(%s, %s): %s == %s?\n", key, salt, crypt(key, salt), hash);
+    salt[0] = getRanChar();
+    salt[1] = getRanChar();
+
+    printf("%s\n", crypt(key, salt));
 
     return 0;
+}
+
+char getRanChar()
+{
+    int i = round(rand() % 52);
+    if (i < 26) return i + 65;
+    else return i + 71;
 }
