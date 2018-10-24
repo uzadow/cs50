@@ -16,16 +16,6 @@ char salt[3];
 char key[KEYLENGTH] = {'A', '\0'};
 string hash;
 
-double logBase(double val, int base);
-void recCheck();
-void loopCheck();
-void loopOnlyCheck();
-bool dictCheck(const char *dictionary);
-bool startDictAttack();
-bool check();
-void addToDict();
-void nextChar(int index);
-
 int main(int argc, char* argv[])
 {
     if (argc != 2)
@@ -50,7 +40,7 @@ int main(int argc, char* argv[])
         d++;
         for (int n = 0, m = ceil(log(d) / log(alphaLen)); n < m; n++)
         {
-            key[n] = alphabet[((long) (d / pow(alphaLen, n)) % (int) alphaLen)];
+            key[n] = alphabet[((long) ((d - 1) / pow(alphaLen, n)) % (int) alphaLen)];
         }
         if (strcmp(crypt(key, salt), hash) == 0) break;
     }
