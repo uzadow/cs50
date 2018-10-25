@@ -6,11 +6,10 @@
 #include <stdio.h>
 #include <math.h>
 
-#define MAXCHARSOFWORD 46
-#define KEYLENGTH MAXCHARSOFWORD
+#define KEYLENGTH 46
 
-const char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-int alphaLen = (sizeof(alphabet) - sizeof(char));
+const char ALPHABET[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+int ALPHA_LEN = (sizeof(ALPHABET) - sizeof(char));
 
 char salt[3];
 char key[KEYLENGTH] = {'A', '\0'};
@@ -30,23 +29,20 @@ int main(int argc, char* argv[])
     salt[0] = hash[0];
     salt[2] = '\0';
 
-    // Start of Brute Force:
-    double d = 0;
-
     printf("Starting brute force attack...\n");
-    ////////
-    while (true)
+    // Looping through the max possible solutions for key with max KEYLENGTH
+    for (double d = 1, b = ((pow(ALPHA_LEN, KEYLENGTH) - ALPHA_LEN) / ALPHA_LEN - 1); d <= b; d++)
     {
-        d++;
-        for (int n = 0, m = ceil(log(d) / log(alphaLen)); n < m; n++)
+        // Iterating through every char of the current key
+        for (int n = 0, m = ceil(log(d) / log(ALPHA_LEN)); n < m; n++)
         {
-            key[n] = alphabet[((long) ((d - 1) / pow(alphaLen, n)) % (int) alphaLen)];
+            // More Math to find the correct index of the current char
+            key[n] = ALPHABET[((int) (d / pow(ALPHA_LEN, n)) % (int) ALPHA_LEN)];
         }
         if (strcmp(crypt(key, salt), hash) == 0) break;
     }
-    ////////
 
-    if (strcmp(key, "-1") == 0) printf("No valid key was found! FIX YOUR BUGS OR INPUT A CORRECT HASH!!\n");
+    if (strcmp(key, "-1") == 0) printf("No valid key was found - Maybe fix kill some bugs...?\n");
     else printf("%s\n", key);
 
     return 0;

@@ -82,6 +82,7 @@ void loopCheck()
     }
 }
 
+// Loop only approach:
 void loopOnlyCheck()
 {
     double d = 0;
