@@ -8,10 +8,11 @@ int main(int argc, char *argv[])
 {
     if (argc != 4)
     {
-        fprintf(stderr, "Usage: ./resize [0 < n < 101] [inputfile] [outpufil]et\n]");
+        fprintf(stderr, "Usage: %s [0 < n < 101] [inputfile] [outputfile]\n]", argv[0]);
         return 1;
     }
 
+    // n = resize
     int n = atoi(argv[1]);
     if (n <=0 || n > 100)
     {
@@ -19,17 +20,17 @@ int main(int argc, char *argv[])
         return 5;
     }
 
-    // Variable initialization
+    // Variable initialization (input and output file)
     char *input = argv[2];
     char *output = argv[3];
 
+    // Open files
     FILE *in = fopen(input, "r");
     if (in == NULL)
     {
         fprintf(stderr, "Could not read file");
         return 2;
     }
-
     FILE *out = fopen(output, "w");
     if (out == NULL)
     {
@@ -60,8 +61,6 @@ int main(int argc, char *argv[])
     int paddin = (4 - (inWidth * sizeof(RGBTRIPLE)) % 4) % 4;
     int paddout = (4 - (bi.biWidth * sizeof(RGBTRIPLE)) % 4) % 4;
 
-    inWidth -= paddin;
-
     // Create a scanfile
     RGBTRIPLE map[abs(bi.biHeight)][bi.biWidth];
     for (int i = 0, biHeight = abs(inHeight); i < biHeight; i++)
@@ -79,15 +78,10 @@ int main(int argc, char *argv[])
             }
         }
         fseek(in, paddin, SEEK_CUR);
-        for (int k = 0; k < paddin; k++)
-        {
-            RGBTRIPLE triple;
-            fread(&triple, sizeof(RGBTRIPLE), 1, in);
-        }
     }
 
 
-    // iterate over infile's scanlines
+    // iterate over infile's scanlines (over the size of the map)
     for (int i = 0, biHeight = abs(bi.biHeight); i < biHeight; i++)
     {
         // iterate over pixels in scanline
@@ -95,7 +89,6 @@ int main(int argc, char *argv[])
         {
             fwrite(&map[i][j], sizeof(RGBTRIPLE), 1, out);
         }
-
         fseek(in, paddout, SEEK_CUR);
         for (int k = 0; k < paddout; k++)
         {

@@ -7,23 +7,24 @@
 #include <math.h>
 
 #define MAXCHARSOFWORD 46
-#define KEYLENGTH MAXCHARSOFWORD
-#define NUMBEROFDICTS 2
+#define KEY_LENGTH MAXCHARSOFWORD
+#define NUM_OF_DICTS 2
 
-const string dicts[] = {"dictionaries/passwords", "dictionaries/large"};
-
-const char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-//const char alphabet[] = "0123456789";
-int alphaLen = (sizeof(alphabet) - sizeof(char));
+const string DICTS[] = {"dictionaries/passwords", "dictionaries/large"};
+const char ALPHABET[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+//const char ALPHABET[] = "0123456789";
+const int ALPHA_LEN = (sizeof(ALPHABET) - sizeof(char));
 
 char salt[3];
-char key[KEYLENGTH] = {'A', '\0'};
+char key[KEY_LENGTH] = {'A', '\0'};
 string hash;
 
 double logBase(double val, int base);
-void recCheck();
-void loopCheck();
-void loopOnlyCheck();
+long long calcMaxSols(int alphaLen, int maxKeyLength);
+int mapIndex(long long num, int alphaLen, int curIndex);
+bool recCheck();
+bool loopCheck();
+bool loopOnlyCheck();
 bool dictCheck(const char *dictionary);
 bool startDictAttack();
 bool check();
@@ -45,64 +46,100 @@ int main(int argc, char* argv[])
     salt[2] = '\0';
 
     // Executional start of dict and brute force attack:
-    if (!(startDictAttack())) loopOnlyCheck();
+    bool found;
+    if (!(startDictAttack()))
+    {
+        found = loopOnlyCheck();
+    }
 
-    if (strcmp(key, "-1") == 0) printf("No valid key was found! FIX YOUR BUGS OR INPUT A CORRECT HASH!!\n");
+    if (strcmp(key, "-1") == 0 || !(found)) printf("No valid key was found! FIX YOUR BUGS OR INPUT A CORRECT HASH!!\n");
     else printf("%s\n", key);
 
     return 0;
 }
 
 // Recursive aproach; too cost-intensive
-void recCheck()
+bool recCheck()
 {
     printf("[recCheck] Starting brute force attack...\n");
-    if (check()) return;
+    if (check())
+    {
+        return true;
+    }
     else
     {
         nextChar(0);
         recCheck();
     }
+    return false;
 }
 
 // Loop aproach:
-void loopCheck()
+bool loopCheck()
 {
     printf("[loopCheck] Starting brute force attack...\n");
-    while (true)
+    // Calculate all possible Solutions for
+    const long long MAX_SOLUTIONS = calcMaxSols(ALPHA_LEN, KEY_LENGTH);
+
+    // Looping through the max possible solutions for key with max KEY_LENGTH
+    for (long long i = 1; i <= MAX_SOLUTIONS; i++)
     {
-        if (strcmp(key, "-1") == 0) return;
+        if (strcmp(key, "-1") == 0) return true;
         else if (check(key, salt))
         {
             // Feeding passwords library
             addToDict();
-            return;
+            return true;
         }
         nextChar(0);
     }
+    return false;
 }
 
 // Loop only approach:
-void loopOnlyCheck()
+bool loopOnlyCheck()
 {
-    double d = 0;
+    // Calculate all possible Solutions for
+    const long long MAX_SOLUTIONS = calcMaxSols(ALPHA_LEN, KEY_LENGTH);
 
-    printf("[loopOnlyCheck] Starting brute force attack...\n");
-    while (true)
+    // Looping through the max possible solutions for key with max KEY_LENGTH
+    for (long long i = 1; i <= MAX_SOLUTIONS; i++)
     {
-        d++;
-        for (int n = 0, m = ceil(logBase(d, alphaLen)); n < m; n++)
+        // Calculate for what key length the program is checking (key length increases over time)
+        int CUR_KEY_LENGTH = ceil(logBase(i, ALPHA_LEN));
+
+        // Iterating through every char of the current key
+        for (int curKeyIndex = 0; curKeyIndex < CUR_KEY_LENGTH; curKeyIndex++)
         {
-            key[n] = alphabet[((long) (d / pow(alphaLen, n)) % (int) alphaLen)];
+            // More Math to find the correct index of the current char
+            int curAlphIndex = mapIndex(i, ALPHA_LEN, curKeyIndex);
+
+            // Sets each char of the key to the corresponding char from ALPHABET; one per iteration
+            key[curKeyIndex] = ALPHABET[curAlphIndex];
         }
-        if (check()) return;
+
+        // Actual test wether key is true. if so, break
+        if (strcmp(crypt(key, salt), hash) == 0) return true;
     }
+    return false;
 }
 
 // Math extension to evaluate logarithms with a different base
 double logBase(double val, int base)
 {
     return (log(val) / log(base));
+}
+
+// Equivalent to sum(KEY_LENGTH^x, 0..KEY_LENGTH)
+long long calcMaxSols(int alphaLen, int maxKeyLength)
+{
+    return (pow(alphaLen, maxKeyLength) - alphaLen) / alphaLen - 1;
+}
+
+// Calculates what letter (index from ALPHABET) is used depending on the cur key index
+int mapIndex(long long num, int alphaLen, int curIndex)
+{
+    return (int) (num / pow(alphaLen, curIndex)) % (int) alphaLen;
 }
 
 // Dict attack: (Integrated are some parts of pset5's speller problem; the file handling and use of "dictionaries/large" library are to be attributed to the Harvard University)
@@ -142,17 +179,17 @@ bool dictCheck(const char *dictionary)
 
 bool startDictAttack()
 {
-    for (int i = 0; i < NUMBEROFDICTS; i++)
+    for (int i = 0; i < NUM_OF_DICTS; i++)
     {
         printf("Starting dict attack using ");
-        if (dictCheck(dicts[i])) return true;
+        if (dictCheck(DICTS[i])) return true;
     }
     return false;
 }
 
 void addToDict()
 {
-    FILE *fileptr = fopen(dicts[0], "a");
+    FILE *fileptr = fopen(DICTS[0], "a");
     fputs(key, fileptr);
     fclose(fileptr);
 }
@@ -160,7 +197,7 @@ void addToDict()
 // Increments key by one element
 void nextChar(int index)
 {
-    if (key[index] == 'z' && index >= (KEYLENGTH - 1))
+    if (key[index] == 'z' && index >= (KEY_LENGTH - 1))
     {
         strcpy(key, "-1");
         return;
