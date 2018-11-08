@@ -93,8 +93,8 @@ int main(int argc, char *argv[])
     fwrite(&bf, sizeof(BITMAPFILEHEADER), 1, out);
     fwrite(&bi, sizeof(BITMAPINFOHEADER), 1, out);
 
-    // Recalculate resize factor
-    n = bi.biWidth / inWidth;
+    // Recalculate resize factor#
+    n = (double) bi.biWidth / inWidth;
 
     // Calculate padding
     int paddin = (4 - (inWidth * sizeof(RGBTRIPLE)) % 4) % 4;
@@ -160,13 +160,21 @@ void refactor (RGBTRIPLE * inputMatrix [], RGBTRIPLE * outputMatrix [], int outW
 // Resizing algorithm:
 void resize (RGBTRIPLE * inputMatrix [], RGBTRIPLE * outputMatrix [], int outWidth, int outHeight, double n)
 {
-    for (int x = 0; x < outWidth; x++)
+    printf("%i / %i\n", outWidth, outHeight);
+    for (int y = 0; y < outWidth; y++)
     {
-        for (int y = 0; y < outHeight; y++)
+        for (int x = 0; x < outHeight; x++)
         {
+            printf("(%i / %i ): ", x, y);
             calcPixel (& outputMatrix [x][y], inputMatrix, x, y, n);
         }
     }
+}
+
+void calcPixel (RGBTRIPLE * pixel, RGBTRIPLE * inputMatrix [], int X, int Y, double n)
+{
+    // Calc the coordinates of the area in the input Matrix
+    average (pixel, inputMatrix, X / n, Y / n, (X + 1) / n, (Y + 1) / n);
 }
 
 // Calc the average color in the given area
@@ -178,6 +186,7 @@ void average (RGBTRIPLE * pixel, RGBTRIPLE * inputMatrix [], double lowX, double
         pixel->rgbtRed = inputMatrix [(int) floor (lowX)] [(int) floor (lowY)].rgbtRed;
         pixel->rgbtBlue = inputMatrix [(int) floor (lowX)] [(int) floor (lowY)].rgbtBlue;
         pixel->rgbtGreen = inputMatrix [(int) floor (lowX)] [(int) floor (lowY)].rgbtGreen;
+        printf("one-cell %i/%i/%i\n", pixel->rgbtRed, pixel->rgbtGreen, pixel->rgbtBlue);
         return;
     }
 
@@ -197,6 +206,10 @@ void average (RGBTRIPLE * pixel, RGBTRIPLE * inputMatrix [], double lowX, double
     pixel->rgbtRed = (BYTE) sum->r / area;
     pixel->rgbtBlue = (BYTE) sum->b / area;
     pixel->rgbtGreen = (BYTE) sum->g / area;
+    printf("multiple-cells %i/%i/%i", pixel->rgbtRed, pixel->rgbtGreen, pixel->rgbtBlue);
+    printf(" -- %i/%i/%i\n", sum->r, sum->g, sum->b);
+
+    free(sum);
 }
 
 void sumColors (SumCol * sum, RGBTRIPLE * inputMatrix [], double lowX, double lowY, double highX, double highY)
@@ -234,11 +247,6 @@ void sumColors (SumCol * sum, RGBTRIPLE * inputMatrix [], double lowX, double lo
     }
 }
 
-void calcPixel (RGBTRIPLE * pixel, RGBTRIPLE * inputMatrix [], int X, int Y, double n)
-{
-    // Calc the coordinates of the area in the input Matrix
-    average (pixel, inputMatrix, X / n, Y / n, (X + 1) / n, (Y + 1) / n);
-}
 
 int calcPixelAmount (double lowerBound, double upperBound, double lowerArea, double upperArea)
 {
