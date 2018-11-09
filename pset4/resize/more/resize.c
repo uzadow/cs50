@@ -145,9 +145,9 @@ int main(int argc, char *argv[])
 
 void refactor (RGBTRIPLE * inputMatrix [], RGBTRIPLE * outputMatrix [], int outWidth, int outHeight, double n)
 {
-    for (int x = 0; x < outWidth; x++)
+    for (int y = 0; y < outHeight; y++)
     {
-        for (int y = 0; y < outHeight; y++)
+        for (int x = 0; x < outWidth; x++)
         {
             // scales the maps into each other
             // TODO: Check for failing conditions
@@ -161,9 +161,9 @@ void refactor (RGBTRIPLE * inputMatrix [], RGBTRIPLE * outputMatrix [], int outW
 void resize (RGBTRIPLE * inputMatrix [], RGBTRIPLE * outputMatrix [], int outWidth, int outHeight, double n)
 {
     printf("%i / %i\n", outWidth, outHeight);
-    for (int y = 0; y < outWidth; y++)
+    for (int x = 0; x < outWidth; x++)
     {
-        for (int x = 0; x < outHeight; x++)
+        for (int y = 0; y < outHeight; y++)
         {
             printf("(%i / %i ): ", x, y);
             calcPixel (& outputMatrix [x][y], inputMatrix, x, y, n);
@@ -181,12 +181,12 @@ void calcPixel (RGBTRIPLE * pixel, RGBTRIPLE * inputMatrix [], int X, int Y, dou
 void average (RGBTRIPLE * pixel, RGBTRIPLE * inputMatrix [], double lowX, double lowY, double highX, double highY)
 {
     // Check wether given area only contains one pixel
-    if (ceil (lowX) == ceil (highX))
+    if ((ceil (highX) - floor (lowX) == 1) && (ceil (highY) - floor (lowY) == 1))
     {
+        printf("\n");
         pixel->rgbtRed = inputMatrix [(int) floor (lowX)] [(int) floor (lowY)].rgbtRed;
         pixel->rgbtBlue = inputMatrix [(int) floor (lowX)] [(int) floor (lowY)].rgbtBlue;
         pixel->rgbtGreen = inputMatrix [(int) floor (lowX)] [(int) floor (lowY)].rgbtGreen;
-        printf("one-cell %i/%i/%i\n", pixel->rgbtRed, pixel->rgbtGreen, pixel->rgbtBlue);
         return;
     }
 
@@ -206,8 +206,7 @@ void average (RGBTRIPLE * pixel, RGBTRIPLE * inputMatrix [], double lowX, double
     pixel->rgbtRed = (BYTE) sum->r / area;
     pixel->rgbtBlue = (BYTE) sum->b / area;
     pixel->rgbtGreen = (BYTE) sum->g / area;
-    printf("multiple-cells %i/%i/%i", pixel->rgbtRed, pixel->rgbtGreen, pixel->rgbtBlue);
-    printf(" -- %i/%i/%i\n", sum->r, sum->g, sum->b);
+    printf("\n");
 
     free(sum);
 }
@@ -228,6 +227,7 @@ void sumColors (SumCol * sum, RGBTRIPLE * inputMatrix [], double lowX, double lo
     // Calculate the amount of pixels and pixelfragments
     int lenX = calcPixelAmount (lowX, highX, dx1, dx2);
     int lenY = calcPixelAmount (lowY, highY, dy1, dy2);
+    printf("lenX: %i; lenY: %i; ", lenX, lenY);
 
     // Iterate over every pixel in the given area and add the percentage of the hex value to the color sum
     for (int y = 0; y < lenY; y++)
@@ -250,7 +250,7 @@ void sumColors (SumCol * sum, RGBTRIPLE * inputMatrix [], double lowX, double lo
 
 int calcPixelAmount (double lowerBound, double upperBound, double lowerArea, double upperArea)
 {
-    return (int) (floor (upperBound) - ceil (lowerBound)) + ceil (lowerArea) + floor (upperArea);
+    return (int) ((floor (upperBound) - ceil (lowerBound)) + (ceil (lowerArea) - floor (lowerArea)) + (ceil (upperArea) - floor (upperArea)));
 }
 
 void addHexPercentage (SumCol * sum, RGBTRIPLE pixel, double percentage)

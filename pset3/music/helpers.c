@@ -1,11 +1,10 @@
 // Helper functions for music
-#include <stdio.h>
+#include "helpers.h"
 
 #include <cs50.h>
 #include <math.h>
+#include <stdio.h>
 #include <string.h>
-
-#include "helpers.h"
 
 // Converts a fraction formatted as X/Y to eighths
 int duration(string fraction)
@@ -54,7 +53,7 @@ int frequency(string note)
             break;
     }
 
-    // returns frequency of semitones away from A4
+    // returns frequency of n semitones away from A4
     return round(pow(2, (n / 12.0)) * 440);
 }
 
