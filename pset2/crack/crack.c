@@ -53,20 +53,18 @@ string nextChar(string s, int index)
         else
         {
             s[index] = 'A';
-            s = nextChar(s, index + 1);
-            return s;
+            return nextChar(s, index + 1);
         }
     }
     else if (s[index] == 'Z')
     {
         s[index] = 'a';
-        return s;
     }
     else
     {
         s[index]++;
-        return s;
     }
+    return s;
 }
 
 bool check(string key, string salt, string hash)
