@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,7 +6,7 @@
 
 #include "../bmp.h"
 
-#define MAX_FACTOR 1000.0
+#define MAX_FACTOR 10000.0
 
 typedef struct
 {
@@ -21,47 +22,58 @@ typedef struct
 } Area;
 
 /*======== Function definitions ========*/
-// Actual algorithm; takes the matrix with pixels of the input and of the output BMP, the size of the latter and the resize factor
-void resize (RGBTRIPLE * inMatrix [], RGBTRIPLE * outMatrix [], int inWidth, int inHeight, int outWidth, int outHeight, double factor);
+// Implementation of averaging resizing algorithm
+void resize (RGBTRIPLE * inMatrix [], RGBTRIPLE * outMatrix [], int outWidth, int outHeight, double factor);
 
-// Function to scale a pixel from the output matrix to an area in the input matrix
-void rescalePixel (RGBTRIPLE * inMatrix [], RGBTRIPLE * outMatrix [], int x, int y, int inWidth, int inHeight, int outWidth, int outHeight, double factor);
+// Creates an initialized Area struct
+Area getArea (int x, int y, double factor);
 
-// Function to calculate the average color in a given area, by dividing the color sum by the area
-void averageColor (Color * color, RGBTRIPLE * inMatrix [], RGBTRIPLE * outMatrix [], int x, int y, int inWidth, int inHeight, int outWidth, int outHeight, double factor);
+// Calculates the average value for each pixel in the output BMP
+RGBTRIPLE calcPixel (RGBTRIPLE * inMatrix [], Area area);
 
-// Helper function to calculate the corners of the area
-double getCorner (int a, double factor);
+// Adds the colors (margin + contend) from all pixels in the field up in a Color struct
+void sumUpColor (Color * color, RGBTRIPLE * inMatrix [], Area area);
 
-// Calculate the area of an Area...
-double calcArea (Area * area);
+// Adds all whole pixels in the field to the Color struct
+void sumUpWholePixels (Color * color, RGBTRIPLE * inMatrix [], Area area);
 
-// Iterates over each pixel in a given area and sums up the colors multiplied by the percentage they represent in the area
-void sumUpColors (Color * color, RGBTRIPLE * inMatrix [], Area * area);
+// Checks wether field only contains one pixel
+bool fieldInPixel (Area area);
 
-// Takes the values from a color and writes it into the pixel
-void getPixelFromColor (RGBTRIPLE * pixel, Color * color);
+// Checks wether margin's smaller than one column of pixels
+bool sideInPixel (double lowerVal, double upperVal);
 
-// Function to calculate the amount of full pixels per height or width
-int calcFullPixAmount (double start, double end);
+// Iterates over each pixel in the margin and calls addMargin
+void sumUpMargin (Color * color, RGBTRIPLE * inMatrix [], Area area);
 
-// Takes the values from a pixel and adds it to a Color struct
-void addColor (Color * color, RGBTRIPLE * pixel, double percentage);
+// Adds a pixel from the margin to the Color sum
+void addMargin (Color * color, RGBTRIPLE * inMatrix [], double x, double y, double percentage);
 
-// Function to print the values of an area
-void pprint (Area * area);
+// Adds a stripe (smaller but longer than one pixel) to the Color sum
+void addStripe (Color * color, RGBTRIPLE * inMatrix [], Area area, char dir);
+
+// Adds the RGB value of given pixel to given Color struct
+void addPixelToColor (Color * color, RGBTRIPLE pixel, double percentage);
+
+// Divides given color by given area and returns it in a new Color struct
+Color divColorByArea (Color colorSum, Area area);
+
+// Converts a Color to an RGBTRIPLE
+RGBTRIPLE getPixelFromColor (Color color);
+
+// Calculates the size of an area
+double calcArea (Area area);
 /*=====================================*/
 
 int main(int argc, char *argv[])
 {
-    // Input Validation
+    /*======== Input validation and variable initialization ========*/
     if (argc != 2)
     {
         fprintf(stderr, "Usage: %s [0 < new Size < %f]\n", argv[0], MAX_FACTOR);
         return 1;
     }
 
-    // n = resize factor
     int newSize = atoi(argv[1]);
     if (newSize <= 0 || newSize > MAX_FACTOR)
     {
@@ -69,7 +81,7 @@ int main(int argc, char *argv[])
         return 5;
     }
 
-    /*#######################################################*/
+        /*#######################################################*/
     // Variable initialization (input and output file)
 
     char tmp [20];
@@ -89,23 +101,25 @@ int main(int argc, char *argv[])
         }
     }
     output[j] = '\0';
+    char * input = "smiley.bmp";
     /*#######################################################*/
 
     // Open files
-    FILE * in = fopen("smiley.bmp", "r");
+    FILE * in = fopen(input, "r");
     if (in == NULL)
     {
-        fprintf(stderr, "Could not read file");
+        fprintf(stderr, "Could not read %s", input);
         return 2;
     }
     FILE * out = fopen(output, "w");
     if (out == NULL)
     {
-        fprintf(stderr, "Could not write to file");
+        fprintf(stderr, "Could not write to %s", output);
         fclose(in);
         return 3;
     }
 
+    /*======== Creating new Bitmap Header ========*/
     // Read BITMAP HEADER of input file
     BITMAPFILEHEADER bf;
     fread(&bf, sizeof(BITMAPFILEHEADER), 1, in);
@@ -113,38 +127,33 @@ int main(int argc, char *argv[])
     fread(&bi, sizeof(BITMAPINFOHEADER), 1, in);
 
     // Recalculate resize factor
-    double factor = (double) (newSize / bi.biWidth);
-
-    // Make values positive (they don't have to)
-    bi.biWidth = abs(bi.biWidth);
-    bi.biHeight = abs(bi.biHeight);
+    double factor = fabs ((double) newSize / bi.biWidth);
 
     // Values of input file
-    int inWidth = bi.biWidth;
-    int inHeight = bi.biHeight;
+    int inWidth = abs (bi.biWidth);
+    int inHeight = abs (bi.biHeight);
 
     // Values of output file
-    int outWidth = (int) factor * inWidth;
-    int outHeight = (int) factor * inHeight;
+    int outWidth = (int) (factor * inWidth);
+    int outHeight = (int) (factor * inHeight);
 
     // Adapting bitmap headers
-    bf.bfSize = (int) (pow(factor, 2) * (bf.bfSize - 54) + 54);
-    bi.biSizeImage = (int) pow(factor, 2) * bi.biSizeImage;
+    bi.biSizeImage = (int) (pow(factor, 2) * bi.biSizeImage);
+    bf.bfSize = bi.biSizeImage + 54;
+
     bi.biWidth = outWidth;
     bi.biHeight = outHeight;
 
-
-
     // Write BITMAP HEADER of output file
-    fwrite(&bf, sizeof(BITMAPFILEHEADER), 1, out);
-    fwrite(&bi, sizeof(BITMAPINFOHEADER), 1, out);
-
+    fwrite(& bf, sizeof(BITMAPFILEHEADER), 1, out);
+    fwrite(& bi, sizeof(BITMAPINFOHEADER), 1, out);
+    /*======== end ========*/
 
     // Calculate padding
     int paddin = (4 - (inWidth * sizeof(RGBTRIPLE)) % 4) % 4;
     int paddout = (4 - (outWidth * sizeof(RGBTRIPLE)) % 4) % 4;
 
-    // Create a scanfile the size of the input BMP (manually allocating mem)
+    /*======== Take each pixel from the input BMP and store it in a matrix ========*/
     RGBTRIPLE * inputMatrix [inWidth];
     for (int i = 0; i < inWidth; i++) { inputMatrix [i] = malloc (inHeight * sizeof (RGBTRIPLE)); }
 
@@ -155,27 +164,29 @@ int main(int argc, char *argv[])
             // Scan each pixel of the input BMP and write it into the map
             RGBTRIPLE scan;
             fread(&scan, sizeof(RGBTRIPLE), 1, in);
-            inputMatrix[x][y] = scan;
+            inputMatrix [y][x] = scan;
         }
         // Skip Padding
         fseek(in, paddin, SEEK_CUR);
     }
+    /*======== end ========*/
 
-    RGBTRIPLE * outputMatrix [outWidth];
-    for (int i = 0; i < outWidth; i++) { outputMatrix [i] = malloc (outHeight * sizeof (RGBTRIPLE)); }
+    // Create second RGBTRIPLE matrix for the output BMP
+    RGBTRIPLE * outputMatrix [outHeight];
+    for (int i = 0; i < outHeight; i++) { outputMatrix [i] = malloc (outWidth * sizeof (RGBTRIPLE)); }
 
     printf("Resize from [%i|%i] to [%i|%i].\n", inWidth, inHeight, outWidth, outHeight);
 
     // RESIZING ALGORITHM
-    resize (inputMatrix, outputMatrix, inWidth, inHeight, outWidth, outHeight, factor);
+    resize (inputMatrix, outputMatrix, outWidth, outHeight, factor);
 
-    // iterate over infile's scanlines (over the size of the map)
+    /*======== Take each pixel from the resized matrix and put it in the BMP ========*/
     for (int y = 0; y < outHeight; y++)
     {
         // iterate over pixels in scanline
         for (int x = 0; x < outWidth; x++)
         {
-            fwrite(& outputMatrix[x][y], sizeof(RGBTRIPLE), 1, out);
+            fwrite(& outputMatrix[y][x], sizeof(RGBTRIPLE), 1, out);
         }
         fseek(in, paddout, SEEK_CUR);
         for (int k = 0; k < paddout; k++)
@@ -183,141 +194,207 @@ int main(int argc, char *argv[])
             fputc(0x00, out);
         }
     }
+    /*======== end ========*/
 
+    // Close BMP files
     fclose(in);
     fclose(out);
     return 0;
 }
 
-void resize (RGBTRIPLE * inMatrix [], RGBTRIPLE * outMatrix [], int inWidth, int inHeight, int outWidth, int outHeight, double factor)
+void resize (RGBTRIPLE * inMatrix [], RGBTRIPLE * outMatrix [], int outWidth, int outHeight, double factor)
 {
     // Iterate over every pixel of the output Matrix
-    for (int y = 0; y < outHeight; y++)
+    for (int x = 0; x < outWidth; x++)
     {
-        for (int x = 0; x < outWidth; x++)
+        for (int y = 0; y < outHeight; y++)
         {
-            rescalePixel (inMatrix, outMatrix, x, y, inWidth, inHeight, outWidth, outHeight, factor);
+            outMatrix [y][x] = calcPixel (inMatrix, getArea (x, y, factor));
         }
     }
 }
 
-void rescalePixel (RGBTRIPLE * inMatrix [], RGBTRIPLE * outMatrix [], int x, int y, int inWidth, int inHeight, int outWidth, int outHeight, double factor)
+// Done
+Area getArea (int x, int y, double factor)
 {
-    // Create a struct to store color values in (used for calculating the average)
-    // and average the color in a calculated area in the input matrix
-    Color color =
-    {
-        .r = 0,
-        .g = 0,
-        .b = 0
-
-    };
-    averageColor (& color, inMatrix, outMatrix, x, y, inWidth, inHeight, outWidth, outHeight, factor);
-
-    // Converts the color into a pixel and stores it at the position (x|y) in the output matrix
-    RGBTRIPLE * pixel = malloc (sizeof (RGBTRIPLE));
-    getPixelFromColor (pixel, & color);
-    outMatrix [x][y] = * pixel;
-
-}
-
-void averageColor (Color * color, RGBTRIPLE * inMatrix [], RGBTRIPLE * outMatrix [], int x, int y, int inWidth, int inHeight, int outWidth, int outHeight, double factor)
-{
-    // Create a struct to store the area in
     Area area =
     {
-        .x1 = getCorner (x, factor),
-        .y1 = getCorner (y, factor),
-        .x2 = getCorner (x + 1, factor),
-        .y2 = getCorner (y + 1, factor)
+        .x1 = x / factor,
+        .x2 = (x + 1) / factor,
+        .y1 = y / factor,
+        .y2 = (y + 1) / factor
     };
-
-    // Calculate the area that the pixel in the output matrix takes up in the input matrix
-    double areaSize = calcArea (& area);
-
-    // Take all colors present in this area and sum them up
-    sumUpColors (color, inMatrix, & area);
-
-    color->r = (int) round (color->r / areaSize);
-    color->g = (int) round (color->g / areaSize);
-    color->b = (int) round (color->b / areaSize);
+    return area;
 }
 
-double getCorner (int a, double factor)
+// Done
+RGBTRIPLE calcPixel (RGBTRIPLE * inMatrix [], Area area)
 {
-    return (double) a / factor;
+    Color color = {.r = 0, .g = 0, .b = 0};
+    sumUpColor (& color, inMatrix, area);
+    return getPixelFromColor (divColorByArea (color, area));
 }
 
-double calcArea (Area * area)
+// Done
+void sumUpColor (Color * color, RGBTRIPLE * inMatrix [], Area area)
 {
-    return ((area->x2 - area->x1) * (area->y2 - area->y1));
-}
-
-void sumUpColors (Color * color, RGBTRIPLE * inMatrix [], Area * area)
-{
-    int pixXamount = calcFullPixAmount (area->x1, area->x2);
-    int pixYamount = calcFullPixAmount (area->y1, area->y2);
-
-    // Calculates the size of the margin
-    double startX = ceil (area->x1) - area->x1;
-    double startY = ceil (area->y1) - area->y1;
-    double endX = floor (area->x2) - area->x2;
-    double endY = floor (area->y2) - area->y2;
-
-    if (ceil (area->x2) - floor (area->x1) == 1.0 && ceil (area->y2) - floor (area->y1) == 1.0)
+    if (fieldInPixel (area))
     {
-        addColor (color, & inMatrix [(int) floor (area->x1)][(int) floor (area->y1)], calcArea (area));
-        return;
+        addMargin (color, inMatrix, area.x1, area.y1, calcArea (area));
     }
-
-    // Iterate over each pixel in the area, checking wether it's whole or not
-    for (int y = 0; y < pixYamount + 2; y++)
+    else if (sideInPixel(area.x1, area.x2))
     {
-        // Check for margin:
-        if ((y == 0 && startY > 0) || (y == pixYamount + 1 && endY > 0) || (y > 0 && y < pixYamount + 1))
+        addStripe (color, inMatrix, area, 'x');
+    }
+    else if (sideInPixel(area.y1, area.y2))
+    {
+        addStripe (color, inMatrix, area, 'y');
+    }
+    else
+    {
+        sumUpWholePixels (color, inMatrix, area);
+        sumUpMargin (color, inMatrix, area);
+    }
+}
+
+// Done
+bool fieldInPixel (Area area)
+{
+    return (sideInPixel (area.x1, area.x2) && sideInPixel (area.y1, area.y2));
+}
+
+// Done
+bool sideInPixel (double lowerVal, double upperVal)
+{
+    return (ceil (upperVal) - floor (lowerVal) == 1);
+}
+
+// Done
+void sumUpWholePixels (Color * color, RGBTRIPLE * inMatrix [], Area area)
+{
+    for (int y = (int) ceil (area.y1); y < floor (area.y2); y++)
+    {
+        for (int x = (int) ceil (area.x1); x < floor (area.x2); x++)
         {
-            // Helper var for y margin (to calculate the percentage)
-            double tdy = 1;
-
-            // if there's a y margin, use that as temp field height (for percentage calculation)
-            if (y == 0 && startY > 0) tdy = startY;
-            else if (y == pixYamount + 1 && endY > 0) tdy = endY;
-
-            for (int x = 0; x < pixXamount + 2; x++)
-            {
-                // is there a margin? otherwise jump over first / last x
-                if ((x == 0 && startX > 0) || (x == pixXamount + 1 && endX > 0) || (x > 0 && x < pixXamount + 1))
-                {
-                    // Helper var for x margin
-                    double tdx = 1;
-
-                    // if there's an x margin, use that as temp field width (for percentage calculation)
-                    if (x == 0 && startX > 0) tdx = startX;
-                    else if (x == pixXamount + 1 && endX > 0) tdx = endX;
-
-                    // Add the color of this pixel multiplied by it's percentage to the overall sum
-                    addColor (color, & inMatrix [(int) floor (area->x1) + x][(int) floor (area->y1) + y], tdx * tdy);
-                }
-            }
+            addPixelToColor (color, inMatrix [x][y], 1.0);
         }
     }
 }
 
-void getPixelFromColor (RGBTRIPLE * pixel, Color * color)
+// Done
+void sumUpMargin (Color * color, RGBTRIPLE * inMatrix [], Area area)
 {
-    pixel->rgbtRed = color->r;
-    pixel->rgbtGreen = color->g;
-    pixel->rgbtBlue = color->b;
+    double left = ceil (area.x1) - area.x1;
+    double right = area.x2 - floor (area.x2);
+    double top = ceil (area.y1) - area.y1;
+    double bottom = area.y2 - floor (area.y2);
+
+    //printf("(%0.2lf|%0.2lf)-(%0.2lf|%0.2lf)\n", area.x1, area.y1, area.x2, area.y2);
+
+    // Add corner pixels
+    addMargin (color, inMatrix, area.x1, area.y1, left * top);
+    addMargin (color, inMatrix, area.x2, area.y1, top * right);
+    addMargin (color, inMatrix, area.x1, area.y2, right * bottom);
+    addMargin (color, inMatrix, area.x2, area.y2, bottom * left);
+
+    // Add left and right margin
+    for (double y = ceil (area.y1); y < floor (area.y2); y++)
+    {
+        addMargin (color, inMatrix, area.x1, y, left);
+        addMargin (color, inMatrix, area.x2, y, right);
+    }
+
+    // Add top and bottom margin
+    for (double x = ceil (area.x1); x < floor (area.x2); x++)
+    {
+        addMargin (color, inMatrix, x, area.y1, top);
+        addMargin (color, inMatrix, x, area.y2, bottom);
+    }
 }
 
-int calcFullPixAmount (double start, double end)
+// Done
+void addMargin (Color * color, RGBTRIPLE * inMatrix [], double x, double y, double percentage)
 {
-    return (int) floor (end) - ceil (start);
+    addPixelToColor (color, inMatrix [(int) floor (x)][(int) floor (y)], percentage);
 }
 
-void addColor (Color * color, RGBTRIPLE * pixel, double percentage)
+// Done
+void addStripe (Color * color, RGBTRIPLE * inMatrix [], Area area, char dir)
 {
-    color->r += pixel->rgbtRed * percentage;
-    color->g += pixel->rgbtGreen * percentage;
-    color->b += pixel->rgbtBlue * percentage;
+    double left, right, top, bottom;
+
+    // For stripes with height smaller than one but longer than one pixel
+    // if so, top == bottom
+    if (dir == 'y')
+    {
+        top = area.y2 - area.y1;
+        left = ceil (area.x1) - area.x1;
+        right = area.x2 - floor (area.x2);
+
+        for (int x = (int) floor (area.x1); x < ceil (area.x2); x++)
+        {
+            double width = 1;
+            if (x == floor (area.x1)) width = left;
+            if (x == floor (area.x2)) width = right;
+
+            addPixelToColor (color, inMatrix [x][(int) floor (area.y1)], width * top);
+        }
+    }
+
+    // For stripes with breadth smaller than one but longer than one pixel
+    // if so, left == right
+    if (dir == 'x')
+    {
+        left = area.x2 - area.x1;
+        top = ceil (area.y1) - area.y1;
+        bottom = area.y2 - floor (area.y2);
+
+        for (int y = (int) floor (area.y1); y < ceil (area.y2); y++)
+        {
+            double height = 1;
+            if (y == floor (area.y1)) height = top;
+            if (y == floor (area.y2)) height = bottom;
+
+            addPixelToColor (color, inMatrix [(int) floor (area.x1)][y], height * left);
+        }
+    }
+}
+
+// Done
+void addPixelToColor (Color * color, RGBTRIPLE pixel, double percentage)
+{
+    color->r += pixel.rgbtRed * percentage;
+    color->g += pixel.rgbtGreen * percentage;
+    color->b += pixel.rgbtBlue * percentage;
+}
+
+// Done
+Color divColorByArea (Color colorSum, Area area)
+{
+    double percentage = calcArea (area);
+    Color color =
+    {
+        .r = colorSum.r / percentage,
+        .g = colorSum.g / percentage,
+        .b = colorSum.b / percentage
+    };
+    return color;
+}
+
+// Done
+RGBTRIPLE getPixelFromColor (Color color)
+{
+    RGBTRIPLE pixel =
+    {
+        .rgbtRed = color.r,
+        .rgbtGreen = color.g,
+        .rgbtBlue = color.b
+    };
+    return pixel;
+}
+
+// Done
+double calcArea (Area area)
+{
+    return ((area.x2 - area.x1) * (area.y2 - area.y1));
 }

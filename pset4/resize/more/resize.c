@@ -75,8 +75,8 @@ int main(int argc, char *argv[])
     }
 
     // n = resize factor
-    int newSize = atoi(argv[1]);
-    if (newSize <= 0 || newSize > MAX_FACTOR)
+    double factor = atof(argv[1]);
+    if (factor <= 0 || factor > MAX_FACTOR)
     {
         fprintf(stderr, "New Size n must be positive and max %f\n", MAX_FACTOR);
         return 5;
@@ -107,9 +107,6 @@ int main(int argc, char *argv[])
     fread(&bf, sizeof(BITMAPFILEHEADER), 1, in);
     BITMAPINFOHEADER bi;
     fread(&bi, sizeof(BITMAPINFOHEADER), 1, in);
-
-    // Recalculate resize factor
-    double factor = fabs ((double) newSize / bi.biWidth);
 
     // Values of input file
     int inWidth = abs (bi.biWidth);
@@ -191,9 +188,7 @@ void resize (RGBTRIPLE * inMatrix [], RGBTRIPLE * outMatrix [], int outWidth, in
     {
         for (int y = 0; y < outHeight; y++)
         {
-            printf("(%i|%i): ", x, y);
             outMatrix [y][x] = calcPixel (inMatrix, getArea (x, y, factor));
-            printf("\n");
         }
     }
 }
