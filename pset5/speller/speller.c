@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     }
 
     // Prepare to report misspellings
-    printf("\nMISSPELLED WORDS\n\n");
+    //printf("\nMISSPELLED WORDS\n\n");
 
     // Prepare to spell-check
     int index = 0, misspellings = 0, words = 0;
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
             // Print word if misspelled
             if (misspelled)
             {
-                printf("%s\n", word);
+                //printf("%s\n", word);
                 misspellings++;
             }
 
@@ -166,11 +166,11 @@ int main(int argc, char *argv[])
     printf("\nWORDS MISSPELLED:     %d\n", misspellings);
     printf("WORDS IN DICTIONARY:  %d\n", n);
     printf("WORDS IN TEXT:        %d\n", words);
-    printf("TIME IN load:         %.2f\n", time_load);
-    printf("TIME IN check:        %.2f\n", time_check);
-    printf("TIME IN size:         %.2f\n", time_size);
-    printf("TIME IN unload:       %.2f\n", time_unload);
-    printf("TIME IN TOTAL:        %.2f\n\n",
+    printf("TIME IN load:         %.3f\n", time_load);
+    printf("TIME IN check:        %.3f\n", time_check);
+    printf("TIME IN size:         %.3f\n", time_size);
+    printf("TIME IN unload:       %.3f\n", time_unload);
+    printf("TIME IN TOTAL:        %.3f\n\n",
            time_load + time_check + time_size + time_unload);
 
     // Success

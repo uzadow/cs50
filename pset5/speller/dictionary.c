@@ -12,7 +12,6 @@ bool loaded = false;
 unsigned int libSize = 0;
 
 
-
 // Returns true if word is in dictionary else false
 bool check(const char *word)
 {
@@ -113,7 +112,7 @@ bool destroy(Trie *head)
 Trie *newNode()
 {
     // Allocate a new node and set the ptr[] to NULL
-    Trie *tmp = malloc(sizeof(Trie));
+    Trie *tmp = calloc(1, sizeof(Trie));
     tmp->eot = false;
 
     /* For loop to initialize the pointers to the child tries with NULL - turns out not to be neccessary
