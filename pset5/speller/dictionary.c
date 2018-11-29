@@ -115,9 +115,12 @@ Trie *newNode()
     // Allocate a new node and set the ptr[] to NULL
     Trie *tmp = malloc(sizeof(Trie));
     tmp->eot = false;
+
+    /* For loop to initialize the pointers to the child tries with NULL - turns out not to be neccessary
     for (int i = 0; i < 27; i++)
     {
         tmp->next[i] = NULL;
     }
+    */
     return tmp;
 }
