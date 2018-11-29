@@ -70,6 +70,7 @@ bool load(const char *dictionary)
 
     dictSize--;      // Fix off-by-one error
     fclose(fileptr);
+    loaded = true;
     return true;
 }
 
@@ -77,7 +78,8 @@ bool load(const char *dictionary)
 unsigned int size(void)
 {
     // Returns variable set up by load function
-    return dictSize;
+    if (loaded) return dictSize;
+    return 0;
 }
 
 // Unloads dictionary from memory, returning true if successful else false
