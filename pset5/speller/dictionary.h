@@ -10,7 +10,7 @@
 // (e.g., pneumonoultramicroscopicsilicovolcanoconiosis)
 #define LENGTH 45
 
-// Trie definition (Library struct)
+// Trie definition (Dictionary struct)
 typedef struct tries
 {
     bool eot;

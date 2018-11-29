@@ -7,16 +7,18 @@
 
 #include "dictionary.h"
 
-Trie *lib;
+Trie *dict;
 bool loaded = false;
-unsigned int libSize = 0;
+unsigned int dictSize = 0;
 
 
 // Returns true if word is in dictionary else false
 bool check(const char *word)
 {
-    // Add traverser
-    Trie *trav = lib;
+    // Initialize traverser
+    Trie *trav = dict;
+
+    // Go through every char of the given word. Return wether last char is the end of a word
     for (int i = 0; i < strlen(word); i++)
     {
         int ind = getInd(word[i]);
@@ -32,67 +34,66 @@ bool check(const char *word)
 // Loads dictionary into memory, returning true if successful else false
 bool load(const char *dictionary)
 {
-    // Allocate Space for trie
-    lib = newNode();
-
-    // Open file for read
+    // Declare starting node of the dict
+    dict = newNode();
     FILE *fileptr = fopen(dictionary, "r");
 
     // Check wether alloc and open worked
-    if (!lib || !fileptr) return false;
-    // Traverse through lib-Trie and write library into it
-    else
+    if (!dict || !fileptr) return false;
+
+    // Traverse through dict-Trie and write dictionary into it
+    char c;
+    Trie *trav;
+    do
     {
-        char c = 0;
-        Trie *trav;
-        do
+        dictSize++;  // Update size of words
+        trav = dict; // Declare temp. traverser
+
+        // Iterate through every char
+        for (c = fgetc (fileptr); c != EOF; c = fgetc (fileptr))
         {
-            libSize++;
-            trav = lib;
-            while(true)
+            // Break if end of word
+            if (c == '\n')
             {
-                c = fgetc(fileptr);
-                if (c == EOF) break;
-                if (c == '\n')
-                {
-                    trav->eot = true;
-                    break;
-                }
-                int ind = getInd(c);
-                if (trav->next[ind] == NULL) trav->next[ind] = newNode();
-                trav = trav->next[ind];
+                trav->eot = true;
+                break;
             }
 
+            // Otherwise go to next Trie at index of the char
+            int ind = getInd(c);
+            if (trav->next[ind] == NULL) trav->next[ind] = newNode();
+            trav = trav->next[ind];
         }
-        while (c != EOF);
-        libSize--;
-        fclose(fileptr);
-        return true;
+
     }
+    while (c != EOF);
+
+    dictSize--;      // Fix off-by-one error
+    fclose(fileptr);
+    return true;
 }
 
 // Returns number of words in dictionary if loaded else 0 if not yet loaded
 unsigned int size(void)
 {
     // Returns variable set up by load function
-    return libSize;
+    return dictSize;
 }
 
 // Unloads dictionary from memory, returning true if successful else false
 bool unload(void)
 {
     // Self-explanatory
-    return destroy(lib);
+    return destroy(dict);
 }
 
 int getInd(char c)
 {
-    // return index for specific letter
-    int ind = -1;
-    if (c == 39) ind = 26;
-    else if (c >= 'a' && c <= 'z') ind = (c - 'a');
-    else if (c >= 'A' && c <= 'Z') ind = (c - 'A');
-    return ind;
+    // return index for specific letter (a-z -> 0-25; ' -> 26, FAIL -> -1)
+    if (c == 39) return 26;
+    if (c >= 'a' && c <= 'z') return (c - 'a');
+    if (c >= 'A' && c <= 'Z') return (c - 'A');
+    return -1;
 }
 
 bool destroy(Trie *head)
@@ -102,6 +103,7 @@ bool destroy(Trie *head)
     {
         for (int i = 0; i < 27; i++)
         {
+            // Free children if avaible
             if (!head->next[i]) destroy(head->next[i]);
         }
         free(head);
@@ -115,7 +117,7 @@ Trie *newNode()
     Trie *tmp = calloc(1, sizeof(Trie));
     tmp->eot = false;
 
-    /* For loop to initialize the pointers to the child tries with NULL - turns out not to be neccessary
+    /* For loop to initialize the pointers to the child tries with NULL - replaced by calloc (ignore *uninitialized* warnings)
     for (int i = 0; i < 27; i++)
     {
         tmp->next[i] = NULL;
