@@ -92,8 +92,8 @@ unsigned int size(void)
 // Unloads dictionary from memory, returning true if successful else false
 bool unload(void)
 {
-    // Self-explanatory
-    return destroy(dict);
+    free(dict);
+    return true;
 }
 
 int getInd(char c)
@@ -103,21 +103,6 @@ int getInd(char c)
     if (c >= 'A' && c <= 'Z') return (c - 'A');
     if (c == 39) return 26;
     return -1;
-}
-
-bool destroy(Trie *head)
-{
-    // Recursively delete Trie
-    if (!head)
-    {
-        for (int i = 0; i < 27; i++)
-        {
-            // Free children if avaible
-            if (!head->next[i]) destroy(head->next[i]);
-        }
-        free(head);
-    }
-    return 1;
 }
 
 Trie *newNode()
