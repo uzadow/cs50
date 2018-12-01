@@ -10,6 +10,7 @@
 Trie *dict;
 bool loaded = false;
 unsigned int dictSize = 0;
+unsigned int firstFreeNode;
 
 
 // Returns true if word is in dictionary else false
@@ -36,8 +37,11 @@ bool check(const char *word)
 // Loads dictionary into memory, returning true if successful else false
 bool load(const char *dictionary)
 {
-    // Declare starting node of the dict
-    dict = newNode();
+    // Allocate dict memory and initialize first node.
+    dict = calloc(1000000, sizeof(Trie));
+    firstFreeNode = 0;
+    newNode();
+
     FILE *fileptr = fopen(dictionary, "r");
 
     // Check wether alloc and open worked
@@ -73,6 +77,7 @@ bool load(const char *dictionary)
     dictSize--;      // Fix off-by-one error
     fclose(fileptr);
     loaded = true;
+    printf("Number of trie nodes: %i\n", firstFreeNode);
     return true;
 }
 
@@ -118,14 +123,8 @@ bool destroy(Trie *head)
 Trie *newNode()
 {
     // Allocate a new node and set the ptr[] to NULL
-    Trie *tmp = calloc(1, sizeof(Trie));
+    Trie *tmp = &dict[firstFreeNode];
     tmp->eot = false;
-
-    /* For loop to initialize the pointers to the child tries with NULL - replaced by calloc (ignore *uninitialized* warnings)
-    for (int i = 0; i < 27; i++)
-    {
-        tmp->next[i] = NULL;
-    }
-    */
+    firstFreeNode++;
     return tmp;
 }
