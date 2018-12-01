@@ -1,14 +1,8 @@
 ## suggestion from https://stackoverflow.com/questions/5711120/gitignore-without-binary-files 
 
-# ignore all files
-*
-
-# un-ignore all files with an extension 
-!*.*
-!Makefile
-
-# un-ignore all directories 
-!*/
+# ignore 
+*.o
+*.swp
 
 # re-ignore cloud 9 files and eslintrc, both included in the IDE
 .c9/*
