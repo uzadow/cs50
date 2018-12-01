@@ -5,6 +5,7 @@
 
 # un-ignore all files with an extension 
 !*.*
+!Makefile
 
 # un-ignore all directories 
 !*/
