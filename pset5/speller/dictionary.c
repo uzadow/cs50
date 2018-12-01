@@ -19,14 +19,16 @@ bool check(const char *word)
     Trie *trav = dict;
 
     // Go through every char of the given word. Return wether last char is the end of a word
-    for (int i = 0; i < strlen(word); i++)
+    int i=0;
+    while(word[i] != 0) 
     {
         int ind = getInd(word[i]);
-        if (trav->next[ind] == NULL)
+        trav = trav->next[ind];
+        if (trav == NULL)
         {
             return false;
         }
-        trav = trav->next[ind];
+        i++;
     }
     return trav->eot;
 }
