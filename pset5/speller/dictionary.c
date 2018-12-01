@@ -21,14 +21,16 @@ bool check(const char *word)
 
     // Go through every char of the given word. Return wether last char is the end of a word
     int i=0;
-    while(word[i] != 0) 
+    const char * curChar = word;
+    while(*curChar != 0)
     {
-        int ind = getInd(word[i]);
+        int ind = getInd(*curChar);
         trav = trav->next[ind];
         if (trav == NULL)
         {
             return false;
         }
+        curChar++;
         i++;
     }
     return trav->eot;
@@ -107,7 +109,7 @@ int getInd(char c)
 
 Trie *newNode()
 {
-    // Allocate a new node and set the ptr[] to NULL
+    // Return a new node from the allocated pool.
     Trie *tmp = &dict[firstFreeNode];
     tmp->eot = false;
     firstFreeNode++;
