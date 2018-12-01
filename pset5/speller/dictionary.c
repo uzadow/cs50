@@ -94,9 +94,9 @@ bool unload(void)
 int getInd(char c)
 {
     // return index for specific letter (a-z -> 0-25; ' -> 26, FAIL -> -1)
-    if (c == 39) return 26;
     if (c >= 'a' && c <= 'z') return (c - 'a');
     if (c >= 'A' && c <= 'Z') return (c - 'A');
+    if (c == 39) return 26;
     return -1;
 }
 
