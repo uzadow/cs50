@@ -21,17 +21,13 @@ bool check(const char *word)
 
     // Go through every char of the given word. Return wether last char is the end of a word
     const char * curChar = word;
-    while(*curChar != 0)
+    while(*curChar != 0 && trav != NULL)
     {
         int ind = getInd(*curChar);
         trav = trav->next[ind];
-        if (trav == NULL)
-        {
-            return false;
-        }
         curChar++;
     }
-    return trav->eot;
+    return trav != NULL && trav->eot;
 }
 
 // Loads dictionary into memory, returning true if successful else false
