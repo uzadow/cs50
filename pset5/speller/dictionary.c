@@ -20,7 +20,6 @@ bool check(const char *word)
     Trie *trav = dict;
 
     // Go through every char of the given word. Return wether last char is the end of a word
-    int i=0;
     const char * curChar = word;
     while(*curChar != 0)
     {
@@ -31,7 +30,6 @@ bool check(const char *word)
             return false;
         }
         curChar++;
-        i++;
     }
     return trav->eot;
 }
