@@ -24,8 +24,4 @@ bool load(const char *dictionary);
 unsigned int size(void);
 bool unload(void);
 
-int getInd(char c);
-Trie *newNode();
-bool destroy(Trie *head);
-
 #endif // DICTIONARY_H

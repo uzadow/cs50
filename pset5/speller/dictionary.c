@@ -12,6 +12,8 @@ bool loaded = false;
 unsigned int dictSize = 0;
 unsigned int firstFreeNode;
 
+int getInd(char c);
+Trie *newNode();
 
 // Returns true if word is in dictionary else false
 bool check(const char *word)
@@ -19,7 +21,7 @@ bool check(const char *word)
     // Initialize traverser
     Trie *trav = dict;
 
-    // Go through every char of the given word. Return wether last char is the end of a word
+    // Go through every char of the given word. Return whether last char is the end of a word
     const char * curChar = word;
     while(*curChar != 0 && trav != NULL)
     {
